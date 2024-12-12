@@ -84,10 +84,7 @@ def control_motors(command):
         ramp_motors_straight(ain2_en, bin2_en)
     elif command == 0x50:  # stop motors
         print("Motor OFF")
-        ain1_ph.low()
-        bin1_ph.high()
-        ain2_en.duty_u16(0)
-        bin2_en.duty_u16(0)
+        motors_off()
     elif command == 0x30:  # motor Clockwise
         print("Motor Clockwise")
         ain1_ph.high()
@@ -106,47 +103,38 @@ def control_motors(command):
     else:
         print("Unknown command")
 
+def motors_off():
+    ain1_ph.low()
+    bin1_ph.low()
+    ain2_en.duty_u16(0)
+    bin2_en.duty_u16(0)
+
 while True:
     if RF_ON:
         active_command = None
-        # for pin, command in RF_COMMANDS.items():
-        #     if not pin.value():  # Button pressed
-        #         active_command = command
-        #         print(f"RF COMMAND {commands[command]} EXECUTED")
-        #         control_motors(command)
-        #         break  # Exit loop after handling the first pressed button
-        
-        # if active_command == None:
-        #     ain1_ph.low()
-        #     bin1_ph.low()
-        #     ain2_en.duty_u16(0)
-        #     bin2_en.duty_u16(0)
-        
-        if RFA.value() != 0:
-            # if RFB.value != 0:
-            #     active_command = None
-            #     ain1_ph.low()
-            #     bin1_ph.low()
-            #     ain2_en.duty_u16(0)
-            #     bin2_en.duty_u16(0)
-            # else:
-            #     active_command = 0x10
-            #     control_motors(0x10)
+        if RFA.value():  # Button pressed (value = 0)
             active_command = 0x10
             control_motors(0x10)
-        elif RFB.value() != 0:
+            time.sleep(0.5)
+            active_command = None
+            motors_off()
+        elif RFB.value():  # Reverse
             active_command = 0x30
             control_motors(0x30)
-        elif RFC.value() != 0:
+            time.sleep(0.5)
+            active_command = None
+            motors_off()
+        elif RFC.value():  # Turn Right
             active_command = 0x40
             control_motors(0x40)
-        elif RFD.value() != 0:
-            active_command = 0x50
-            control_motors(0x50)
-        else: 
-            break
-        
+            time.sleep(0.5)
+            active_command = None
+            motors_off()
+        elif RFD.value():  # Stop Motors
+            time.sleep(0.5)
+            active_command = None
+            motors_off()
     else:
         pass
+    time.sleep(0.05)  # Short delay for responsiveness
 
-    time.sleep(0.05)  
